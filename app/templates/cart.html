@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+    <h1>This is your personal cart!</h1>
+    <h4>Your cart total is ${{total}}</h4>
+    <a href="{{ url_for('clearCart', cart_id=cart_id) }}" class="btn btn-secondary">Clear Cart</a>
+
+    <main class="flex justify-content-center">
+        {% for key in products.keys() %}
+
+            <div class="card" style="width: 24rem;">
+                <img src="{{products[key][0].img_url}}" class="card-img-top" alt="product pic">
+                <div class="card-body">
+                    <h5 class="card-title">{{products[key][0].product_name}}</h5>
+                    <p class="card-text">{{products[key][0].description}}</p>
+                    <p class="card-text">Price: ${{products[key][0].price}}</p>
+                    <p class="card-text">Quantity: {{products[key][1]}}</p>
+                    <p class="card-text">Subtotal: ${{products[key][1]*products[key][0].price}}</p>
+                    <span>
+                        <a href="{{ url_for('removeOneFromCart', product_id=products[key][0].product_id) }}" class="btn btn-secondary">Remove 1</a>
+                        &nbsp;
+                        <a href="{{ url_for('removeAllUnitsFromCart', product_id=products[key][0].product_id) }}" class="btn btn-secondary">Remove All</a>
+                    </span>
+                </div>
+            </div>
+        {% endfor %}
+    </main>
+
+{% endblock %}

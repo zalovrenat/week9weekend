@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<h1>Add New Product to the Store</h1>
+
+<form class="col-4" action="/addproduct" method="POST">
+    {{ form.hidden_tag() }}
+
+    {{ form.sku(class='form-control', placeholder='SKU') }}
+    {{ form.product_name(class='form-control', placeholder='Product Name') }}
+    {{ form.img_url(class='form-control', placeholder='Product Image URL') }}
+    {{ form.description(class='form-control', placeholder='Product Description') }}
+    {{ form.price(class='form-control', placeholder='Product Price') }}
+    {{ form.submit(class='btn-primary') }}
+</form>
+
+
+{% endblock %}
