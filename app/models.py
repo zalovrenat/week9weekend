@@ -6,7 +6,6 @@ from werkzeug.security import generate_password_hash
 db = SQLAlchemy()
 
 class User(db.Model, UserMixin):
-    # __tablename__ = 'user'
     user_id = db.Column(db.Integer,primary_key=True)
     username = db.Column(db.String(45),nullable=False,unique=True)
     email = db.Column(db.String(100),nullable=False,unique=True)
@@ -26,17 +25,17 @@ class User(db.Model, UserMixin):
             raise NotImplementedError("No `id` attribute - override `get_id`") from None
 
 class Cart(db.Model):
-    # __tablename__ = 'user'
     cart_id = db.Column(db.Integer,primary_key=True)
-    user_id = db.Column(db.Integer,db.ForeignKey('user.user_id'),nullable=False,unique=True)
+    user_id = db.Column(db.Integer,db.ForeignKey('user.user_id', ondelete="CASCADE"),nullable=False,unique=True)
+    total = db.Column(db.Float,nullable=False,default=0.00)
 
     def __init__(self,user_id):
         self.user_id = user_id
 
 class CartProduct(db.Model):
     cart_product_id = db.Column(db.Integer,primary_key=True)
-    cart_id = db.Column(db.Integer,db.ForeignKey('cart.cart_id'),nullable=False)
-    product_id = db.Column(db.Integer,db.ForeignKey('product.product_id'),nullable=False)
+    cart_id = db.Column(db.Integer,db.ForeignKey('cart.cart_id', ondelete="CASCADE"),nullable=False)
+    product_id = db.Column(db.Integer,db.ForeignKey('product.product_id', ondelete="CASCADE"),nullable=False)
     quantity = db.Column(db.Integer,nullable=False)
 
     def __init__(self, cart_id, product_id, quantity):
@@ -58,3 +57,13 @@ class Product(db.Model):
         self.img_url = img_url
         self.description = description
         self.price = price
+    
+    def to_dict(self):
+        return {
+            'product_id': self.product_id,
+            'sku': self.sku,
+            'product_name': self.product_name,
+            'img_url': self.img_url,
+            'description': self.description,
+            'price': self.price
+        }

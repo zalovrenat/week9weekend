@@ -121,15 +121,18 @@ def addToCart(product_id):
     cart = Cart.query.filter_by(user_id=current_user.user_id).first()
     if not cart:
         flash('You need to log in before you can add items to your cart.', 'warning')
-        return redirect(url_for('login'))
+        return redirect(url_for('loginPage'))
     cart_product = CartProduct.query.filter_by(cart_id=cart.cart_id,product_id=product_id).first()
+    cart_product_price = Product.query.filter_by(product_id = product_id).first().price
     if cart_product:
         cart_product.quantity = cart_product.quantity + 1
+        cart.total += cart_product_price
         db.session.commit()
         flash('Succesfully added an additional unit of the product to the cart!', 'success')
         return redirect(url_for('products'))
     else:
         new_cart_item = CartProduct(cart.cart_id,product_id,1)
+        cart.total += cart_product_price
         db.session.add(new_cart_item)
         db.session.commit()
         flash('Succesfully added the product to the cart!', 'success')
@@ -138,21 +141,17 @@ def addToCart(product_id):
 @app.route('/cart', methods = ["GET", "POST"])
 @login_required
 def cart():
-
     cart = Cart.query.filter_by(user_id=current_user.user_id).first()
-    total = 0
-    if not cart:
-        flash('You need to log in before you can view your cart.', 'warning')
-        return redirect(url_for('login'))
-    else:
-        cart_products = CartProduct.query.filter_by(cart_id=cart.cart_id).all()
-        products = dict()
-        for cp in cart_products:
-            products[cp.product_id] = [Product.query.filter_by(product_id=cp.product_id).first(),cp.quantity]
-            total = total + (Product.query.filter_by(product_id=cp.product_id).first().price * cp.quantity)
-    total = round(total,2)
+    products = dict()
+    # if not cart:
+    #     flash('You need to log in before you can view your cart.', 'warning')
+    #     return redirect(url_for('loginPage'))
+    # else:
+    cart_products = CartProduct.query.filter_by(cart_id=cart.cart_id).all()
+    for cp in cart_products:
+        products[cp.product_id] = [Product.query.filter_by(product_id=cp.product_id).first(),cp.quantity]
 
-    return render_template('cart.html',products=products,total=total)
+    return render_template('cart.html',products=products,total=cart.total)
 
 @app.route('/removeallunitsfromcart/<product_id>', methods = ["GET", "POST"])
 @login_required
@@ -160,9 +159,12 @@ def removeAllUnitsFromCart(product_id):
     cart = Cart.query.filter_by(user_id=current_user.user_id).first()
     if not cart:
         flash('You need to log in before you can add items to your cart.', 'warning')
-        return redirect(url_for('login'))
+        return redirect(url_for('loginPage'))
     cart_product = CartProduct.query.filter_by(cart_id=cart.cart_id,product_id=product_id).first()
+    cart_product_price = Product.query.filter_by(product_id = product_id).first().price
+    total_reduction = cart_product_price * cart_product.quantity
     if cart_product:
+        cart.total -= total_reduction
         db.session.delete(cart_product)
         db.session.commit()
         flash('Succesfully removed all units of the product from the cart!', 'success')
@@ -177,11 +179,13 @@ def removeOneFromCart(product_id):
     cart = Cart.query.filter_by(user_id=current_user.user_id).first()
     if not cart:
         flash('You need to log in before you can add items to your cart.', 'warning')
-        return redirect(url_for('login'))
+        return redirect(url_for('loginPage'))
     cart_product = CartProduct.query.filter_by(cart_id=cart.cart_id,product_id=product_id).first()
+    total_reduction = Product.query.filter_by(product_id = product_id).first().price
     if cart_product:
         if cart_product.quantity >= 2:
             cart_product.quantity = cart_product.quantity - 1
+            cart.total -= total_reduction
             flash('Succesfully removed a unit of the product from the cart!', 'success')
         else:
             removeAllUnitsFromCart(product_id)
@@ -197,10 +201,11 @@ def clearCart():
     cart = Cart.query.filter_by(user_id=current_user.user_id).first()
     if not cart:
         flash('You need to log in before you can clear your cart.', 'warning')
-        return redirect(url_for('login'))
+        return redirect(url_for('loginPage'))
     cart_products = CartProduct.query.filter_by(cart_id=cart.cart_id).all()
     for product in cart_products:
         db.session.delete(product)
+    cart.total -= cart.total
     db.session.commit()
     
     flash('Successfully cleared the cart.', 'success')
