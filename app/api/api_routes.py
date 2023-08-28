@@ -80,7 +80,7 @@ def get_single_product_API(product_id):
 @token_auth_required
 def add_to_cart_API(user):
     data = request.json
-    product_id = data.get('product_id')
+    product_id = data['product_id']
     product = Product.query.get(product_id)
     cart = Cart.query.filter_by(user_id=user.user_id).first()
     cart_product = CartProduct.query.filter_by(cart_id=cart.cart_id,product_id=product_id).first()
@@ -109,7 +109,7 @@ def add_to_cart_API(user):
 @token_auth_required
 def remove_one_from_cart_API(user):
     data = request.json
-    product_id = data.get('product_id')
+    product_id = data['product_id']
     product = Product.query.get(product_id)
     cart = Cart.query.filter_by(user_id=user.user_id).first()
     cart_product = CartProduct.query.filter_by(cart_id=cart.cart_id,product_id=product_id).first()
@@ -135,7 +135,7 @@ def remove_one_from_cart_API(user):
 @token_auth_required
 def remove_all_from_cart_API(user):
     data = request.json
-    product_id = data.get('product_id')
+    product_id = data['product_id']
     product = Product.query.get(product_id)
     cart = Cart.query.filter_by(user_id=user.user_id).first()
     cart_product = CartProduct.query.filter_by(cart_id=cart.cart_id,product_id=product_id).first()
@@ -185,7 +185,9 @@ def get_cart_API(user):
     if cart_product:
         for cp in cart_product:
             product = Product.query.filter_by(product_id=cp.product_id).first()
-            cart_products.append(product.to_dict())
+            dict_product = product.to_dict()
+            dict_product['quantity'] = cp.quantity
+            cart_products.append(dict_product)
     return {
         'status': 'ok',
         'results': len(cart_products),

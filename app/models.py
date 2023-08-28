@@ -2,6 +2,7 @@ from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash
+from secrets import token_hex
 
 db = SQLAlchemy()
 
@@ -12,17 +13,28 @@ class User(db.Model, UserMixin):
     password = db.Column(db.String,nullable=False)
     admin = db.Column(db.Boolean,nullable=False,default=False)
     date_created = db.Column(db.DateTime,nullable=False,default=datetime.utcnow())
+    token = db.Column(db.String,nullable=False,unique=True)
 
     def __init__(self,username,email,password):
         self.username = username
         self.email = email
         self.password = generate_password_hash(password)
+        self.token = token_hex(16)
     
     def get_id(self):
         try:
             return str(self.user_id)
         except AttributeError:
             raise NotImplementedError("No `id` attribute - override `get_id`") from None
+        
+    def to_dict(self):
+        return {
+            'user_id': self.user_id,
+            'username': self.username,
+            'email': self.email,
+            'token': self.token,
+            'admin': self.admin
+        }
 
 class Cart(db.Model):
     cart_id = db.Column(db.Integer,primary_key=True)
