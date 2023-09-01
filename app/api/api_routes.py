@@ -135,17 +135,11 @@ def remove_one_from_cart_API(user):
 @token_auth_required
 def remove_all_from_cart_API(user):
     data = request.json
-    print('data: ',data, type(data))
     product_id = data['product_id']
-    print('product_id: ',product_id, type(product_id))
     product = Product.query.get(product_id)
-    print('product: ',product,type(product))
     cart = Cart.query.filter_by(user_id=user.user_id).first()
-    print('cart: ',cart,type(cart))
     cart_product = CartProduct.query.filter_by(cart_id=cart.cart_id,product_id=product_id).first()
-    print('cart_product: ',cart_product,type(cart_product))
     total_reduction = product.price * cart_product.quantity
-    print('total_reduction: ',total_reduction,type(total_reduction))
     
     if cart_product:
         cart.total -= total_reduction
